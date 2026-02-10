@@ -92,6 +92,10 @@ export const cardStyles = css`
     color: #f2ba5a;
   }
 
+  .countdown-display.active.remember {
+    color: #b39ddb;
+  }
+
   .daily-usage-display {
     font-size: 1rem;
     color: var(--secondary-text-color);
@@ -248,6 +252,10 @@ export const cardStyles = css`
       color: #f2ba5a;
   }
 
+  .timer-control-button.remember ha-icon[icon] {
+      color: #b39ddb;
+  }
+
 
 
   .timer-control-button:hover {
@@ -280,6 +288,10 @@ export const cardStyles = css`
       color: #f2ba5a;
   }
 
+  .timer-control-button.active.remember {
+      color: #b39ddb;
+  }
+
   .timer-control-button.disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -292,12 +304,21 @@ export const cardStyles = css`
   }
 
   @keyframes pulse-orange {
-      0%, 100% { box-shadow: 
+      0%, 100% { box-shadow:
           0 0 0 2px rgba(242, 186, 90, 0.3),
           0 0 12px rgba(242, 186, 90, 0.6); }
-      50% { box-shadow: 
+      50% { box-shadow:
           0 0 0 4px rgba(242, 186, 90, 0.5),
           0 0 20px rgba(242, 186, 90, 0.8); }
+  }
+
+  @keyframes pulse-purple {
+      0%, 100% { box-shadow:
+          0 0 0 2px rgba(179, 157, 219, 0.3),
+          0 0 12px rgba(179, 157, 219, 0.6); }
+      50% { box-shadow:
+          0 0 0 4px rgba(179, 157, 219, 0.5),
+          0 0 20px rgba(179, 157, 219, 0.8); }
   }
 
   .button-grid {
@@ -461,6 +482,22 @@ export const cardStyles = css`
   @keyframes glow-pulse-orange {
       0%, 100% { box-shadow: 0 0 15px rgba(242, 186, 90, 0.6); }
       50% { box-shadow: 0 0 25px rgba(242, 186, 90, 0.9); }
+  }
+
+  .entity-state-button.on.remember {
+    color: #b39ddb;
+    box-shadow: 0 0 15px #b39ddb;
+    background-color: rgba(179, 157, 219, 0.1);
+    animation: glow-pulse-purple 2s infinite;
+  }
+
+  .entity-state-button.on.remember ha-icon {
+      color: #b39ddb;
+  }
+
+  @keyframes glow-pulse-purple {
+      0%, 100% { box-shadow: 0 0 15px rgba(179, 157, 219, 0.6); }
+      50% { box-shadow: 0 0 25px rgba(179, 157, 219, 0.9); }
   }
 
 

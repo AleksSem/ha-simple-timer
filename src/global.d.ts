@@ -11,6 +11,7 @@ interface TimerCardConfig {
   slider_max?: number;
   slider_unit?: string;
   reverse_mode?: boolean;
+  remember_state?: boolean;
   hide_slider?: boolean;
   show_daily_usage?: boolean;
   slider_thumb_color?: string | null;

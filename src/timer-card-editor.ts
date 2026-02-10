@@ -292,6 +292,7 @@ class TimerCardEditor extends LitElement {
       slider_max: cfg.slider_max || 120,
       slider_unit: cfg.slider_unit || 'min',
       reverse_mode: cfg.reverse_mode || false,
+      remember_state: cfg.remember_state || false,
       hide_slider: cfg.hide_slider || false,
       show_daily_usage: cfg.show_daily_usage !== false,
       slider_thumb_color: cfg.slider_thumb_color || null,
@@ -941,23 +942,39 @@ class TimerCardEditor extends LitElement {
 
 
         <div class="config-row">
-          <ha-formfield .label=${"Reverse Mode (Delayed Start)" + (isDefaultTimerEnabled ? " (Disabled)" : "")}>
+          <ha-formfield .label=${"Reverse Mode (Delayed Start)" + (isDefaultTimerEnabled || this._config?.remember_state ? " (Disabled)" : "")}>
             <ha-switch
-              .checked=${(this._config?.reverse_mode || false) && !isDefaultTimerEnabled}
+              .checked=${(this._config?.reverse_mode || false) && !isDefaultTimerEnabled && !this._config?.remember_state}
               .configValue=${"reverse_mode"}
               @change=${this._valueChanged}
-              .disabled=${isDefaultTimerEnabled}
+              .disabled=${isDefaultTimerEnabled || this._config?.remember_state}
             ></ha-switch>
           </ha-formfield>
           ${isDefaultTimerEnabled ? html`
             <div class="helper-text" style="color: var(--warning-color, orange); margin-top: 4px;">
-              Disabled because a 
-              <span 
-                @click=${(e: Event) => this._navigate(e, "/config/integrations/integration/simple_timer")} 
+              Disabled because a
+              <span
+                @click=${(e: Event) => this._navigate(e, "/config/integrations/integration/simple_timer")}
                 style="color: inherit; text-decoration: underline; font-weight: bold; cursor: pointer;">
                 Default Timer
               </span>
               is configured ${defaultTimerDetails}.
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="config-row">
+          <ha-formfield .label=${"Toggle on Finish" + (isDefaultTimerEnabled || this._config?.reverse_mode ? " (Disabled)" : "")}>
+            <ha-switch
+              .checked=${(this._config?.remember_state || false) && !isDefaultTimerEnabled && !this._config?.reverse_mode}
+              .configValue=${"remember_state"}
+              @change=${this._valueChanged}
+              .disabled=${isDefaultTimerEnabled || this._config?.reverse_mode}
+            ></ha-switch>
+          </ha-formfield>
+          ${this._config?.remember_state && !isDefaultTimerEnabled && !this._config?.reverse_mode ? html`
+            <div class="helper-text" style="color: var(--secondary-text-color); margin-top: 4px;">
+              Timer won't change device state on start. On finish, it will toggle the device (ON→OFF or OFF→ON).
             </div>
           ` : ''}
         </div>
@@ -1080,6 +1097,10 @@ class TimerCardEditor extends LitElement {
       updatedConfig.hide_slider = value; // boolean
     } else if (configValue === "reverse_mode") {
       updatedConfig.reverse_mode = value; // boolean
+      if (value) updatedConfig.remember_state = false; // mutually exclusive
+    } else if (configValue === "remember_state") {
+      updatedConfig.remember_state = value; // boolean
+      if (value) updatedConfig.reverse_mode = false; // mutually exclusive
     } else if (configValue === "slider_unit") {
       updatedConfig.slider_unit = value;
     } else if (configValue === "turn_off_on_cancel") {

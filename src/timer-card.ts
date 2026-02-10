@@ -158,7 +158,8 @@ class TimerCard extends LitElement {
       entity_state_button_icon_color: cfg.entity_state_button_icon_color || null,
       entity_state_button_background_color_on: cfg.entity_state_button_background_color_on || null,
       entity_state_button_icon_color_on: cfg.entity_state_button_icon_color_on || null,
-      turn_off_on_cancel: cfg.turn_off_on_cancel !== false
+      turn_off_on_cancel: cfg.turn_off_on_cancel !== false,
+      remember_state: cfg.remember_state || false
     };
 
     if (cfg.timer_instance_id) {
@@ -392,17 +393,30 @@ class TimerCard extends LitElement {
 
     const switchId = this._effectiveSwitchEntity!;
     let reverseMode = this._config?.reverse_mode || false;
+    let rememberState = this._config?.remember_state || false;
 
-    // Override: If a Default Timer is active on the backend, Reverse Mode is strictly disabled
-    // to prevent conflicting logic (Auto-Off vs Delayed-Start).
+    // Override: If a Default Timer is active on the backend, special modes are strictly disabled
     if (this._effectiveSensorEntity && this.hass) {
       const sensor = this.hass.states[this._effectiveSensorEntity];
       if (sensor && sensor.attributes.default_timer_enabled) {
         reverseMode = false;
+        rememberState = false;
       }
     }
 
-    if (reverseMode) {
+    // Mutually exclusive
+    if (rememberState) reverseMode = false;
+
+    if (rememberState) {
+      // REMEMBER STATE MODE: Start timer without changing device state; toggle on finish
+      this.hass!.callService(DOMAIN, "start_timer", {
+        entry_id: entryId,
+        duration: minutes,
+        unit: unit,
+        remember_state: true,
+        start_method: startMethod
+      });
+    } else if (reverseMode) {
       // REVERSE MODE: Start timer directly (Decoupled: Do not force OFF state)
       this.hass!.callService(DOMAIN, "start_timer", {
         entry_id: entryId,
@@ -825,15 +839,6 @@ class TimerCard extends LitElement {
     localStorage.setItem(`simple-timer-slider-${instanceId}`, this._sliderValue.toString());
   }
 
-  _getCurrentTimerMode(): string {
-    if (!this._entitiesLoaded || !this.hass || !this._effectiveSensorEntity) {
-      return 'normal';
-    }
-
-    const sensor = this.hass.states[this._effectiveSensorEntity];
-    return sensor?.attributes?.reverse_mode ? 'reverse' : 'normal';
-  }
-
   _getSliderStyle(): string {
     const thumbColor = this._config?.slider_thumb_color || '#2ab69c';
     const backgroundColor = this._config?.slider_background_color || 'var(--secondary-background-color)';
@@ -1082,6 +1087,7 @@ class TimerCard extends LitElement {
     const timerDurationInMinutes = sensor.attributes.timer_duration || 0;
     const isManualOn = isOn && !isTimerActive;
     const isReverseMode = sensor.attributes.reverse_mode;
+    const isRememberState = sensor.attributes.remember_state;
 
     const committedSeconds = parseFloat(sensor.state as string) || 0;
 
@@ -1147,7 +1153,7 @@ class TimerCard extends LitElement {
 
           <!-- Countdown Display Section -->
           <div class="countdown-section">
-            <div class="countdown-display ${isTimerActive ? 'active' : ''} ${isReverseMode ? 'reverse' : ''}">
+            <div class="countdown-display ${isTimerActive ? 'active' : ''} ${isReverseMode ? 'reverse' : ''} ${isRememberState ? 'remember' : ''}">
               ${countdownDisplay}
             </div>
 						${this._config?.show_daily_usage !== false ? html`
